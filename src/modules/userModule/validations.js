@@ -92,9 +92,32 @@ const resetPasswordSchema = (body, res) => {
   }
 };
 
+const updateUserProfileSchema = (body, res) => {
+  const Schema = joi.object({
+    username: joi.string().min(3).max(30),
+    email: joi.string().email(),
+  });
+
+  const validationResult = Schema.validate(body);
+
+  if (validationResult.error) {
+    console.log(validationResult.error);
+
+    return errorResponseData(
+      res,
+      commonMessages.errorWhileValidatingValues,
+      validationResult.error,
+      400
+    );
+  } else {
+    return false;
+  }
+};
+
 module.exports = {
   userRegisterSchema,
   userLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateUserProfileSchema,
 };

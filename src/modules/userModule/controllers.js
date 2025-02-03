@@ -13,6 +13,7 @@ const {
   userLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateUserProfileSchema,
 } = require("./validations");
 const { findOne, generateForgotPasswordToken } = require("./helpers");
 const { emailTransport } = require("../../services/mailTransport");
@@ -191,9 +192,57 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const updateUserProfile = async (req, res) => {
+  try {
+    const validationResponse = updateUserProfileSchema(req.body, res);
+    if (validationResponse !== false) return;
+
+    const { username, email } = req.body;
+
+    if (username?.trim() === "" || email?.trim() === "") {
+      return errorResponseWithoutData(res, messages.valueCannotBeEmpty, 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        username,
+        email,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!user) {
+      return errorResponseWithoutData(
+        res,
+        messages.errorUpdatingUserProfile,
+        400
+      );
+    }
+
+    return successResponseData(
+      res,
+      user,
+      200,
+      messages.updateUserProfileSuccessfull
+    );
+  } catch (error) {
+    console.log(messages.errorUpdatingUserProfile, error);
+
+    return errorResponseWithoutData(
+      res,
+      `${messages.errorUpdatingUserProfile} : ${error}`,
+      400
+    );
+  }
+};
+
 module.exports = {
   registerUser,
   userLogin,
   forgotPassword,
   resetPassword,
+  updateUserProfile,
 };

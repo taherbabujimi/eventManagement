@@ -17,6 +17,11 @@ let messages = {
   somethingWentWrongResetingPassword:
     "Something went wrong while reseting password",
   resetPasswordSuccess: "Password reset successfull ",
+  errorUpdatingUserProfile: "Error While updating user profile",
+  oneValueRequiredToUpdate:
+    "Atleast one value is required to update user profile",
+  updateUserProfileSuccessfull: "User profile updated successfully",
+  valueCannotBeEmpty: "Values cannot be empty."
 };
 
 module.exports = {
