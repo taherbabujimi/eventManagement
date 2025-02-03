@@ -1,9 +1,12 @@
 const {
   addEvent,
   getUploadSignature,
-  getUpcomingEventsByUser,
+  getUpcomingEventsByEventManager,
   updateEvent,
   saveEvent,
+  getSavedEvents,
+  getUpcomingEvents,
+  getPastEventsCreatedByEventManager,
 } = require("./controllers");
 const { verifyJWT } = require("../../middlewares/authMiddleware");
 const { verifyUserType } = require("../../middlewares/checkUsertype");
@@ -27,7 +30,7 @@ eventRoute.get(
   "/getUpcomingEventsByUser",
   verifyJWT,
   verifyUserType(["eventManager"]),
-  getUpcomingEventsByUser
+  getUpcomingEventsByEventManager
 );
 
 eventRoute.put(
@@ -42,6 +45,27 @@ eventRoute.post(
   verifyJWT,
   verifyUserType(["attendee"]),
   saveEvent
+);
+
+eventRoute.get(
+  "/getSavedEvents",
+  verifyJWT,
+  verifyUserType(["attendee"]),
+  getSavedEvents
+);
+
+eventRoute.get(
+  "/getUpcomingEvents",
+  verifyJWT,
+  verifyUserType(["attendee"]),
+  getUpcomingEvents
+);
+
+eventRoute.get(
+  "/getPastEventsByUser",
+  verifyJWT,
+  verifyUserType(["eventManager"]),
+  getPastEventsCreatedByEventManager
 );
 
 module.exports = eventRoute;

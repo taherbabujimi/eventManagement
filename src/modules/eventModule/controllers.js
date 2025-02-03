@@ -51,7 +51,15 @@ const addEvent = async (req, res) => {
     const validationResponse = addEventSchema(req.body, res);
     if (validationResponse !== false) return;
 
-    const { name, title, numberOfSeats, dateTime, image } = req.body;
+    const {
+      name,
+      title,
+      numberOfSeats,
+      dateTime,
+      image,
+      description,
+      location,
+    } = req.body;
 
     const existingEvent = await findOne({ title });
     if (existingEvent) {
@@ -65,6 +73,8 @@ const addEvent = async (req, res) => {
       image,
       dateTime,
       userId: req.user._id,
+      description,
+      location,
     });
 
     if (!event) {
@@ -87,10 +97,54 @@ const addEvent = async (req, res) => {
   }
 };
 
-const getUpcomingEventsByUser = async (req, res) => {
+const getUpcomingEvents = async (req, res) => {
   try {
     let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
-    page -= 1;
+
+    if (page !== 0 && page !== "0") {
+      page -= 1;
+    }
+
+    if (!SORT_BY.includes(sortBy)) {
+      sortBy = SORT_BY[0];
+    }
+
+    sortType = sortType === "desc" ? -1 : 1;
+
+    const currentDate = Date.now();
+
+    const upcomingEvents = await Event.find({ dateTime: { $gt: currentDate } })
+      .limit(limit)
+      .skip(page * limit);
+
+    if (!upcomingEvents) {
+      return successResponseWithoutData(res, messages.noUpcomingEvents, 200);
+    }
+
+    return successResponseData(
+      res,
+      upcomingEvents,
+      200,
+      messages.fetchedUpcomingEvents
+    );
+  } catch (error) {
+    console.log(`${messages.errorGettingUpcomingEvents}: ${error}`);
+
+    errorResponseWithoutData(
+      res,
+      `${messages.errorGettingUpcomingEvents}: ${error}`,
+      400
+    );
+  }
+};
+
+const getUpcomingEventsByEventManager = async (req, res) => {
+  try {
+    let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
+
+    if (page !== 0 && page !== "0") {
+      page -= 1;
+    }
 
     if (!SORT_BY.includes(sortBy)) {
       sortBy = SORT_BY[0];
@@ -241,10 +295,111 @@ const saveEvent = async (req, res) => {
   }
 };
 
+const getSavedEvents = async (req, res) => {
+  try {
+    let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
+
+    if (page !== 0 && page !== "0") {
+      page -= 1;
+    }
+
+    if (!SORT_BY.includes(sortBy)) {
+      sortBy = SORT_BY[0];
+    }
+
+    sortType = sortType === "desc" ? -1 : 1;
+
+    const savedEventsIds = req.user.savedEvents;
+
+    if (savedEventsIds.length === 0) {
+      return successResponseWithoutData(res, messages.zeroSavedEvents, 200);
+    }
+
+    const savedEvents = await Event.find({ _id: { $in: savedEventsIds } })
+      .limit(limit)
+      .skip(page * limit)
+      .sort({ [sortBy]: sortType });
+
+    if (!savedEvents) {
+      return errorResponseWithoutData(
+        res,
+        messages.errorGettingSavedEvents,
+        400
+      );
+    }
+
+    return successResponseData(
+      res,
+      savedEvents,
+      200,
+      messages.successfullyFetchedSavedEvents
+    );
+  } catch (error) {
+    console.log(`${messages.errorGettingSavedEvents} : ${error}`);
+
+    return errorResponseWithoutData(
+      res,
+      `${messages.errorGettingSavedEvents} : ${error}`,
+      400
+    );
+  }
+};
+
+const getPastEventsCreatedByEventManager = async (req, res) => {
+  try {
+    let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
+
+    if (page !== 0 && page !== "0") {
+      page -= 1;
+    }
+
+    if (!SORT_BY.includes(sortBy)) {
+      sortBy = SORT_BY[0];
+    }
+
+    sortType = sortType === "desc" ? -1 : 1;
+
+    const currentDate = Date.now();
+
+    const eventsCreatedInPast = await Event.find({
+      $and: [{ userId: req.user._id }, { dateTime: { $lt: currentDate } }],
+    })
+      .limit(limit)
+      .skip(page * limit)
+      .sort({ [sortBy]: sortType });
+
+    if (!eventsCreatedInPast) {
+      return successResponseWithoutData(
+        res,
+        messages.zeroPastEventByManager,
+        200
+      );
+    }
+
+    return successResponseData(
+      res,
+      eventsCreatedInPast,
+      200,
+      messages.pastEventByManagerFetchedSuccess
+    );
+  } catch (error) {
+    console.log(`${messages.errorGettingPastEvents}: ${error}`);
+
+    return errorResponseWithoutData(
+      res,
+      `${messages.errorGettingPastEvents}: ${error}`,
+      400
+    );
+  }
+};
+
 module.exports = {
   addEvent,
   getUploadSignature,
-  getUpcomingEventsByUser,
+  getUpcomingEventsByEventManager,
   updateEvent,
   saveEvent,
+  getSavedEvents,
+  getUpcomingEvents,
+  getPastEventsCreatedByEventManager,
 };

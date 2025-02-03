@@ -9,7 +9,9 @@ const addEventSchema = (body, res) => {
       title: joi.string().min(3).max(30).required(),
       numberOfSeats: joi.number().required(),
       image: joi.string().required(),
-      dateTime: joi.date().required(),
+      dateTime: joi.date().required().greater(Date.now()),
+      description: joi.string().required(),
+      location: joi.string().required(),
     });
 
     const validationResult = Schema.validate(body);

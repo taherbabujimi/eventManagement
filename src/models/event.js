@@ -29,6 +29,14 @@ const eventSchema = new Schema(
       ref: "User",
       required: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
