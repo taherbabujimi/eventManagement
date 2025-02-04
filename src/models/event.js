@@ -12,10 +12,6 @@ const eventSchema = new Schema(
       type: String,
       required: true,
     },
-    numberOfSeats: {
-      type: Number,
-      required: true,
-    },
     image: {
       type: String,
       required: true,
