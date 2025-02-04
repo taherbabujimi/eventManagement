@@ -51,25 +51,8 @@ const addEvent = async (req, res) => {
     const validationResponse = addEventSchema(req.body, res);
     if (validationResponse !== false) return;
 
-    const tickets = [];
-
-    const { name, title, seats, dateTime, image, description, location } =
+    const { name, title, dateTime, image, description, location } =
       req.body;
-
-    console.log("SEATS: ", seats);
-
-    for (let i = 0; i < seats.noOfSeatsInEachRow * seats.noOfRows; i++) {
-      const row = Math.floor(i / seats.noOfSeatsInEachRow) + 1;
-      tickets.push({
-        seatNo: `${i + 1}`,
-        row: row,
-        column: (i % seats.noOfSeatsInEachRow) + 1,
-        status: "available",
-        price: seats.amount[row], // Use the price from the amount object
-      });
-    }
-
-    console.log("TICKETS :", tickets);
 
     const existingEvent = await findOne({ title });
     if (existingEvent) {
@@ -79,7 +62,6 @@ const addEvent = async (req, res) => {
     const event = await Event.create({
       name,
       title,
-      seats: tickets,
       image,
       dateTime,
       userId: req.user._id,

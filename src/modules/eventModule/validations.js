@@ -7,14 +7,6 @@ const addEventSchema = (body, res) => {
     const Schema = joi.object({
       name: joi.string().min(3).max(30).required(),
       title: joi.string().min(3).max(30).required(),
-      seats: joi
-        .object()
-        .keys({
-          noOfRows: joi.number().required(),
-          noOfSeatsInEachRow: joi.number().required(),
-          amount: joi.object().required(),
-        })
-        .required(),
       image: joi.string().required(),
       dateTime: joi.date().required().greater(Date.now()),
       description: joi.string().required(),
