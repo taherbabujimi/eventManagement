@@ -57,8 +57,8 @@ const addSeats = async (req, res) => {
 };
 
 const purchaseSeat = async (req, res) => {
-  try {
-    
+  try { 
+
   } catch (error) {
     console.log(`${errorPurchasingTicket}: ${error}`);
 
