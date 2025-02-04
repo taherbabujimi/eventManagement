@@ -59,10 +59,12 @@ const addSeats = async (req, res) => {
 };
 
 const selectSeats = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
 
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+
     const validationResponse = selectSeatsSchema(req.body, res);
     if (validationResponse !== false) return;
 
@@ -113,7 +115,12 @@ const selectSeats = async (req, res) => {
     }
 
     await session.commitTransaction();
-    return successResponseData(res, updatedSeats, 200, messages.seatsReservedSuccessfully);
+    return successResponseData(
+      res,
+      updatedSeats,
+      200,
+      messages.seatsReservedSuccessfully
+    );
   } catch (error) {
     await session.abortTransaction();
     throw error;

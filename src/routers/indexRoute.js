@@ -3,6 +3,7 @@ const userRoute = require("../modules/userModule/routes");
 const eventRoute = require("../modules/eventModule/routes");
 const subscriptionRoute = require("../modules/subscriptionModule/routes");
 const seatRoute = require("../modules/seatModule/routes");
+require("../modules/seatModule/cronJobs");
 
 indexRoute.use("/v1/users", userRoute);
 indexRoute.use("/v1/events", eventRoute);

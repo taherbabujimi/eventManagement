@@ -6,6 +6,10 @@ const messages = {
   seatsNotAvailable: "One or more seats are not available",
   failedToReserveSeats: "Failed to reserve one or more seats",
   seatsReservedSuccessfully: "Selected seats reserved successfully",
+  errorWhileCheckingExpiredReservation:
+    "Something went wrong while checking the expired reservations for the seats",
+  ExpriredReservedSeatsUpdatedSuccessfully:
+    "Seats with Expired Reservation updated successfully",
 };
 
 module.exports = { messages };
