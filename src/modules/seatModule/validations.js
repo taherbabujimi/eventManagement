@@ -36,4 +36,36 @@ const addSeatsSchema = (body, res) => {
   }
 };
 
-module.exports = { addSeatsSchema };
+const selectSeatsSchema = (body, res) => {
+  try {
+    const Schema = joi.object({
+      seatIds: joi.array().required(),
+    });
+
+    const validationResult = Schema.validate(body);
+
+    if (validationResult.error) {
+      console.log(
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`
+      );
+
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.log(`${commonMessages.errorWhileValidatingValues}: ${error}`);
+
+    return errorResponseWithoutData(
+      res,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
+      400
+    );
+  }
+};
+
+module.exports = { addSeatsSchema, selectSeatsSchema };
