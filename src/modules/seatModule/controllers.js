@@ -4,11 +4,16 @@ const {
   successResponseData,
   successResponseWithoutData,
 } = require("../../services/responses");
+const { STATUS } = require("../../services/constants");
 const { Event } = require("../../models/event");
 const { Booking } = require("../../models/booking");
 const { addSeatsSchema, selectSeatsSchema } = require("./validations");
 const { Seat } = require("../../models/seat");
 const mongoose = require("mongoose");
+const path = require("path");
+const pug = require("pug");
+const fs = require("fs");
+const { emailTransport } = require("../../services/mailTransport");
 
 const addSeats = async (req, res) => {
   try {
@@ -36,7 +41,7 @@ const addSeats = async (req, res) => {
         seatNo: `${i + 1}`,
         row: row,
         column: (i % noOfSeatsInEachRow) + 1,
-        status: "available",
+        status: STATUS[0],
         price: amount[row],
       });
     }
@@ -75,7 +80,7 @@ const selectSeats = async (req, res) => {
     const seats = await Seat.find({
       _id: { $in: seatIds },
       eventId: eventId,
-      status: "available",
+      status: STATUS[0],
     }).session(session);
 
     if (seats.length !== seatIds.length) {
@@ -90,12 +95,12 @@ const selectSeats = async (req, res) => {
         {
           _id: seat._id,
           eventId: eventId,
-          status: "available",
+          status: STATUS[0],
           version: seat.version,
         },
         {
           $set: {
-            status: "reserved",
+            status: STATUS[2],
             userId: req.user._id,
             reservationExpiry: expiryTime,
           },
@@ -163,12 +168,13 @@ const bookSeats = async (req, res) => {
       Seat.findOneAndUpdate(
         {
           _id: seatId,
-          status: "reserved",
+          status: { $ne: STATUS[1] },
           eventId: eventId,
+          userId: userId,
         },
         {
           $set: {
-            status: "booked",
+            status: STATUS[1],
             reservationExpiry: null,
           },
         },
@@ -181,10 +187,22 @@ const bookSeats = async (req, res) => {
 
     const updatedSeats = await Promise.all(updateSeatStatus);
 
-    console.log(updatedSeats);
+    console.log("Updated Seats: ", updatedSeats);
 
     if (updatedSeats.some((seat) => !seat)) {
       await session.abortTransaction();
+
+      const htmlPath = path.join(__dirname, "./view/paymentRefund.html");
+
+      const html = fs.readFileSync(htmlPath, "utf-8");
+
+      await emailTransport(
+        "taher.babuji@mindinventory.com",
+        "aliasgertaher@gmail.com",
+        "Refund Notification: Seat Booking Unsuccessful",
+        html
+      );
+
       return errorResponseWithoutData(res, messages.errorBookingSeats, 400);
     }
 

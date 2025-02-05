@@ -17,6 +17,7 @@ const {
 } = require("./validations");
 const { findOne, generateForgotPasswordToken } = require("./helpers");
 const { emailTransport } = require("../../services/mailTransport");
+const { link } = require("./constants");
 
 const registerUser = async (req, res) => {
   try {
@@ -112,7 +113,7 @@ const forgotPassword = async (req, res) => {
 
     const forgotPasswordToken = await generateForgotPasswordToken(email);
 
-    const link = `http://localhost:3003/v1/users/resetPassword?token=${forgotPasswordToken}`;
+    const link = `${link}${forgotPasswordToken}`;
 
     successResponseWithoutData(res, messages.resetPasswordMail, 200, {
       token: forgotPasswordToken,

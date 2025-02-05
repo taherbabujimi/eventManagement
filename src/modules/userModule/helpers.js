@@ -1,8 +1,9 @@
 const { User } = require("../../models/user");
 const jwt = require("jsonwebtoken");
 
-const findOne = async (value) => {
-  const user = await User.findOne(value);
+//In this function provide field, On the basis of which you want to find the specific user
+const findOne = async (field) => {
+  const user = await User.findOne(field);
   return user;
 };
 

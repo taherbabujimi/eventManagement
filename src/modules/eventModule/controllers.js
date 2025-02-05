@@ -9,7 +9,7 @@ const { messages } = require("./messages");
 const { addEventSchema, updateEventSchema } = require("./validations");
 const { findOne } = require("./helpers");
 const cloudinary = require("cloudinary").v2;
-const { SORT_BY } = require("./constants");
+const { SORT_BY, SORT_TYPE } = require("./constants");
 const { User } = require("../../models/user");
 
 const getUploadSignature = async (req, res) => {
@@ -51,8 +51,7 @@ const addEvent = async (req, res) => {
     const validationResponse = addEventSchema(req.body, res);
     if (validationResponse !== false) return;
 
-    const { name, title, dateTime, image, description, location } =
-      req.body;
+    const { name, title, dateTime, image, description, location } = req.body;
 
     const existingEvent = await findOne({ title });
     if (existingEvent) {
@@ -101,7 +100,7 @@ const getUpcomingEvents = async (req, res) => {
       sortBy = SORT_BY[0];
     }
 
-    sortType = sortType === "desc" ? -1 : 1;
+    sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
     const currentDate = Date.now();
 
@@ -142,7 +141,7 @@ const getUpcomingEventsByEventManager = async (req, res) => {
       sortBy = SORT_BY[0];
     }
 
-    sortType = sortType === "desc" ? -1 : 1;
+    sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
     const eventCount = await Event.find({
       userId: req.user.id,
@@ -299,7 +298,7 @@ const getSavedEvents = async (req, res) => {
       sortBy = SORT_BY[0];
     }
 
-    sortType = sortType === "desc" ? -1 : 1;
+    sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
     const savedEventsIds = req.user.savedEvents;
 
@@ -349,7 +348,7 @@ const getPastEventsCreatedByEventManager = async (req, res) => {
       sortBy = SORT_BY[0];
     }
 
-    sortType = sortType === "desc" ? -1 : 1;
+    sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
     const currentDate = Date.now();
 
