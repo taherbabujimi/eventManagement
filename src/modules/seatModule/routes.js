@@ -1,5 +1,5 @@
 const seatRoute = require("express").Router();
-const { addSeats, selectSeats } = require("./controllers");
+const { addSeats, selectSeats, bookSeats } = require("./controllers");
 const { verifyJWT } = require("../../middlewares/authMiddleware");
 const { verifyUserType } = require("../../middlewares/checkUsertype");
 
@@ -16,5 +16,7 @@ seatRoute.put(
   verifyUserType(["attendee"]),
   selectSeats
 );
+
+seatRoute.get("/bookSeats", bookSeats);
 
 module.exports = seatRoute;

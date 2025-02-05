@@ -1,116 +1,151 @@
 const joi = require("joi");
-const { errorResponseData } = require("../../services/responses");
+const { errorResponseWithoutData } = require("../../services/responses");
 const { commonMessages } = require("../../services/commonMessages");
 const { USERTYPE } = require("../../services/constants");
 
 const userRegisterSchema = (body, res) => {
-  const Schema = joi.object({
-    username: joi.string().min(3).max(30).required(),
-    email: joi.string().email().required(),
-    password: joi.string().min(3).max(30).required(),
-    usertype: joi.string().valid(...USERTYPE),
-    timezone: joi.string().required(),
-  });
+  try {
+    const Schema = joi.object({
+      username: joi.string().min(3).max(30).required(),
+      email: joi.string().email().required(),
+      password: joi.string().min(3).max(30).required(),
+      usertype: joi.string().valid(...USERTYPE),
+      timezone: joi.string().required(),
+    });
 
-  const validationResult = Schema.validate(body);
+    const validationResult = Schema.validate(body);
 
-  if (validationResult.error) {
-    console.log(validationResult.error);
+    if (validationResult.error) {
+      console.log(validationResult.error);
 
-    return errorResponseData(
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return errorResponseWithoutData(
       res,
-      commonMessages.errorWhileValidatingValues,
-      validationResult.error,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
       400
     );
-  } else {
-    return false;
   }
 };
 
 const userLoginSchema = (body, res) => {
-  const Schema = joi.object({
-    email: joi.string().email().required(),
-    password: joi.string().min(3).max(30).required(),
-  });
+  try {
+    const Schema = joi.object({
+      email: joi.string().email().required(),
+      password: joi.string().min(3).max(30).required(),
+    });
 
-  const validationResult = Schema.validate(body);
+    const validationResult = Schema.validate(body);
 
-  if (validationResult.error) {
-    console.log(validationResult.error);
+    if (validationResult.error) {
+      console.log(validationResult.error);
 
-    return errorResponseData(
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return errorResponseWithoutData(
       res,
-      commonMessages.errorWhileValidatingValues,
-      validationResult.error,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
       400
     );
-  } else {
-    return false;
   }
 };
 
 const forgotPasswordSchema = (body, res) => {
-  const Schema = joi.object({
-    email: joi.string().email().required(),
-  });
+  try {
+    const Schema = joi.object({
+      email: joi.string().email().required(),
+    });
 
-  const validationResult = Schema.validate(body);
+    const validationResult = Schema.validate(body);
 
-  if (validationResult.error) {
-    console.log(validationResult.error);
+    if (validationResult.error) {
+      console.log(validationResult.error);
 
-    return errorResponseData(
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return errorResponseWithoutData(
       res,
-      commonMessages.errorWhileValidatingValues,
-      validationResult.error,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
       400
     );
-  } else {
-    return false;
   }
 };
 
 const resetPasswordSchema = (body, res) => {
-  const Schema = joi.object({
-    newPassword: joi.string().min(3).max(30).required(),
-  });
+  try {
+    const Schema = joi.object({
+      newPassword: joi.string().min(3).max(30).required(),
+    });
 
-  const validationResult = Schema.validate(body);
+    const validationResult = Schema.validate(body);
 
-  if (validationResult.error) {
-    console.log(validationResult.error);
+    if (validationResult.error) {
+      console.log(validationResult.error);
 
-    return errorResponseData(
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return errorResponseWithoutData(
       res,
-      commonMessages.errorWhileValidatingValues,
-      validationResult.error,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
       400
     );
-  } else {
-    return false;
   }
 };
 
 const updateUserProfileSchema = (body, res) => {
-  const Schema = joi.object({
-    username: joi.string().min(3).max(30),
-    email: joi.string().email(),
-  });
+  try {
+    const Schema = joi.object({
+      username: joi.string().min(3).max(30),
+      email: joi.string().email(),
+    });
 
-  const validationResult = Schema.validate(body);
+    const validationResult = Schema.validate(body);
 
-  if (validationResult.error) {
-    console.log(validationResult.error);
+    if (validationResult.error) {
+      console.log(validationResult.error);
 
-    return errorResponseData(
+      return errorResponseWithoutData(
+        res,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
+        400
+      );
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return errorResponseWithoutData(
       res,
-      commonMessages.errorWhileValidatingValues,
-      validationResult.error,
+      `${commonMessages.errorWhileValidatingValues}: ${error}`,
       400
     );
-  } else {
-    return false;
   }
 };
 

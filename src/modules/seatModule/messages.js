@@ -10,6 +10,8 @@ const messages = {
     "Something went wrong while checking the expired reservations for the seats",
   ExpriredReservedSeatsUpdatedSuccessfully:
     "Seats with Expired Reservation updated successfully",
+  errorBookingSeats: "Something went wrong while booking seats.",
+  bookingSuccessfull: "Your seats are booked successfully",
 };
 
 module.exports = { messages };

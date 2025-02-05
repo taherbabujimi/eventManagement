@@ -5,6 +5,7 @@ const {
   successResponseWithoutData,
 } = require("../../services/responses");
 const { Event } = require("../../models/event");
+const { Booking } = require("../../models/booking");
 const { addSeatsSchema, selectSeatsSchema } = require("./validations");
 const { Seat } = require("../../models/seat");
 const mongoose = require("mongoose");
@@ -129,7 +130,85 @@ const selectSeats = async (req, res) => {
   }
 };
 
+// const createCheckoutSession = async (req, res) => {};
+
+const bookSeats = async (req, res) => {
+  let session;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    const { userId, eventId, amount, transactionId, seatIds } = req.query;
+    const seatIdArray = JSON.parse(seatIds);
+
+    const booking = await Booking.create(
+      [
+        {
+          seatIds: seatIdArray,
+          userId,
+          eventId,
+          amount,
+          transactionId,
+        },
+      ],
+      { session }
+    );
+
+    if (!booking) {
+      await session.abortTransaction();
+      return errorResponseWithoutData(res, messages.errorBookingSeats, 400);
+    }
+
+    const updateSeatStatus = seatIdArray.map((seatId) =>
+      Seat.findOneAndUpdate(
+        {
+          _id: seatId,
+          status: "reserved",
+          eventId: eventId,
+        },
+        {
+          $set: {
+            status: "booked",
+            reservationExpiry: null,
+          },
+        },
+        {
+          new: true,
+          session: session,
+        }
+      )
+    );
+
+    const updatedSeats = await Promise.all(updateSeatStatus);
+
+    console.log(updatedSeats);
+
+    if (updatedSeats.some((seat) => !seat)) {
+      await session.abortTransaction();
+      return errorResponseWithoutData(res, messages.errorBookingSeats, 400);
+    }
+
+    await session.commitTransaction();
+    return successResponseData(res, booking, 200, messages.bookingSuccessfull);
+  } catch (error) {
+    if (session) {
+      await session.abortTransaction();
+    }
+    console.log(`${messages.errorBookingSeats}: ${error}`);
+    return errorResponseWithoutData(
+      res,
+      `${messages.errorBookingSeats}: ${error}`,
+      400
+    );
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
+};
+
 module.exports = {
   addSeats,
   selectSeats,
+  bookSeats,
 };

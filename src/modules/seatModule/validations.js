@@ -7,19 +7,19 @@ const addSeatsSchema = (body, res) => {
     const Schema = joi.object({
       noOfRows: joi.number().required(),
       noOfSeatsInEachRow: joi.number().required(),
-      amount: joi.object().required(),
+      amount: joi.object().length(body.noOfRows).required(),
     });
 
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
       console.log(
-        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`
       );
 
       return errorResponseWithoutData(
         res,
-        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
         400
       );
     } else {
@@ -46,12 +46,12 @@ const selectSeatsSchema = (body, res) => {
 
     if (validationResult.error) {
       console.log(
-        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`
       );
 
       return errorResponseWithoutData(
         res,
-        `${commonMessages.errorWhileValidatingValues}: ${validationResult}`,
+        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
         400
       );
     } else {
