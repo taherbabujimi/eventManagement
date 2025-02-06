@@ -33,6 +33,10 @@ const eventSchema = new Schema(
       type: String,
       required: true,
     },
+    eventType: {
+      type: String,
+      enum: ["trial", "live"],
+    },
   },
   { timestamps: true }
 );

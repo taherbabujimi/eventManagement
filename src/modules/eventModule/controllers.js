@@ -11,6 +11,8 @@ const { findOne } = require("./helpers");
 const cloudinary = require("cloudinary").v2;
 const { SORT_BY, SORT_TYPE } = require("./constants");
 const { User } = require("../../models/user");
+const { Subscription } = require("../../models/subscription");
+const { default: mongoose } = require("mongoose");
 
 const getUploadSignature = async (req, res) => {
   try {
@@ -47,7 +49,74 @@ const getUploadSignature = async (req, res) => {
 };
 
 const addEvent = async (req, res) => {
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    const subscribed = await Subscription.findOne({
+      userId: req.user._id,
+    });
+
+    const currentDate = Date.now();
+
+    if (!subscribed) {
+      let testHours = Math.abs(currentDate - req.user.createdAt) / 36e5;
+      console.log("Test Hours: ", testHours);
+
+      if (testHours >= 72) {
+        return errorResponseWithoutData(res, messages.trialCompleted, 400);
+      }
+
+      const validationResponse = addEventSchema(req.body, res);
+      if (validationResponse !== false) return;
+
+      const { name, title, dateTime, image, description, location } = req.body;
+
+      const existingEvent = await findOne({ title });
+      if (existingEvent) {
+        return errorResponseWithoutData(res, messages.eventExists, 400);
+      }
+
+      const event = await Event.create({
+        name,
+        title,
+        image,
+        dateTime,
+        userId: req.user._id,
+        description,
+        location,
+        eventType: "trial",
+      });
+
+      if (!event) {
+        return errorResponseWithoutData(
+          res,
+          messages.somethingWentWrongAddingEvent,
+          400
+        );
+      }
+
+      return successResponseData(res, event, 200, messages.addEventSuccess);
+    }
+
+    if (subscribed.expiry <= currentDate) {
+      return errorResponseWithoutData(res, messages.subscriptionExpired, 400);
+    }
+
+    if (subscribed.subscriptionPlan === "threeMonth") {
+      if (subscribed.remainingEvents === 0) {
+        return errorResponseWithoutData(
+          res,
+          messages.NoOfAllowedEventsCompleted,
+          400
+        );
+      }
+
+      subscribed.remainingEvents -= 1;
+      await subscribed.save({ session });
+    }
+
     const validationResponse = addEventSchema(req.body, res);
     if (validationResponse !== false) return;
 
@@ -58,17 +127,23 @@ const addEvent = async (req, res) => {
       return errorResponseWithoutData(res, messages.eventExists, 400);
     }
 
-    const event = await Event.create({
-      name,
-      title,
-      image,
-      dateTime,
-      userId: req.user._id,
-      description,
-      location,
-    });
+    const event = await Event.create(
+      [
+        {
+          name,
+          title,
+          image,
+          dateTime,
+          userId: req.user._id,
+          description,
+          location,
+        },
+      ],
+      { session }
+    );
 
     if (!event) {
+      await session.abortTransaction();
       return errorResponseWithoutData(
         res,
         messages.somethingWentWrongAddingEvent,
@@ -76,15 +151,20 @@ const addEvent = async (req, res) => {
       );
     }
 
+    await session.commitTransaction();
     return successResponseData(res, event, 200, messages.addEventSuccess);
   } catch (error) {
     console.log(messages.somethingWentWrongAddingEvent, error);
+
+    await session.abortTransaction();
 
     return errorResponseWithoutData(
       res,
       messages.somethingWentWrongAddingEvent,
       400
     );
+  } finally {
+    await session.endSession();
   }
 };
 

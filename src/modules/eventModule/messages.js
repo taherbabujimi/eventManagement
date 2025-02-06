@@ -27,6 +27,12 @@ let messages = {
   zeroPastEventByManager: "You have not created any events in past",
   pastEventByManagerFetchedSuccess:
     "Past events by the manager fetched successfully",
+  trialCompleted:
+    "Your 3 days trial is completed, Please purchase a subscription to continue",
+  subscriptionExpired:
+    "Your subscription is expired, Please purchase new one to continue",
+  NoOfAllowedEventsCompleted:
+    "Number of allowed events in this subscription is completed, please purchase new one to continue",
 };
 
 module.exports = {

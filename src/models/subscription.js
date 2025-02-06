@@ -22,6 +22,9 @@ const subscriptionSchema = new Schema(
       type: Date,
       required: true,
     },
+    remainingEvents: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
