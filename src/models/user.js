@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Schema } = require("mongoose");
 const { USERTYPE } = require("../services/constants");
+const { MODELNAMES } = require("../services/constants");
 
 const userSchema = new Schema(
   {
@@ -64,6 +65,6 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model(MODELNAMES.user, userSchema);
 
 module.exports = { User };

@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
 const { SUBSCRIPTION } = require("../services/constants");
+const { MODELNAMES } = require("../services/constants");
 
 const subscriptionSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: MODELNAMES.user,
       required: true,
     },
     subscriptionPlan: {
@@ -22,13 +23,13 @@ const subscriptionSchema = new Schema(
       type: Date,
       required: true,
     },
-    remainingEvents: {
-      type: Number,
-    },
   },
   { timestamps: true }
 );
 
-const Subscription = mongoose.model("Subscription", subscriptionSchema);
+const Subscription = mongoose.model(
+  MODELNAMES.subscription,
+  subscriptionSchema
+);
 
 module.exports = { Subscription };

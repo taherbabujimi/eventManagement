@@ -13,6 +13,7 @@ const { SORT_BY, SORT_TYPE } = require("./constants");
 const { User } = require("../../models/user");
 const { Subscription } = require("../../models/subscription");
 const { default: mongoose } = require("mongoose");
+const { SUBSCRIPTION } = require("../../services/constants");
 
 const getUploadSignature = async (req, res) => {
   try {
@@ -49,14 +50,16 @@ const getUploadSignature = async (req, res) => {
 };
 
 const addEvent = async (req, res) => {
-  let session;
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
+    const subscribed = await Subscription.findOne(
+      {
+        userId: req.user._id,
+      },
+      {},
+      { sort: { createdAt: -1 } }
+    );
 
-    const subscribed = await Subscription.findOne({
-      userId: req.user._id,
-    });
+    console.log("USER SUBSCRIPTION: ", subscribed);
 
     const currentDate = Date.now();
 
@@ -104,17 +107,24 @@ const addEvent = async (req, res) => {
       return errorResponseWithoutData(res, messages.subscriptionExpired, 400);
     }
 
-    if (subscribed.subscriptionPlan === "threeMonth") {
-      if (subscribed.remainingEvents === 0) {
+    if (subscribed.subscriptionPlan === SUBSCRIPTION[0]) {
+      const previousEventCount = await Event.countDocuments({
+        userId: req.user._id,
+        $and: [
+          { createdAt: { $gte: subscribed.purchasedOn } },
+          { createdAt: { $lt: subscribed.expiry } },
+        ],
+      });
+
+      console.log("PREVIUOS EVENT COUNT: ", previousEventCount);
+
+      if (previousEventCount === 10) {
         return errorResponseWithoutData(
           res,
           messages.NoOfAllowedEventsCompleted,
           400
         );
       }
-
-      subscribed.remainingEvents -= 1;
-      await subscribed.save({ session });
     }
 
     const validationResponse = addEventSchema(req.body, res);
@@ -127,23 +137,17 @@ const addEvent = async (req, res) => {
       return errorResponseWithoutData(res, messages.eventExists, 400);
     }
 
-    const event = await Event.create(
-      [
-        {
-          name,
-          title,
-          image,
-          dateTime,
-          userId: req.user._id,
-          description,
-          location,
-        },
-      ],
-      { session }
-    );
+    const event = await Event.create({
+      name,
+      title,
+      image,
+      dateTime,
+      userId: req.user._id,
+      description,
+      location,
+    });
 
     if (!event) {
-      await session.abortTransaction();
       return errorResponseWithoutData(
         res,
         messages.somethingWentWrongAddingEvent,
@@ -151,20 +155,15 @@ const addEvent = async (req, res) => {
       );
     }
 
-    await session.commitTransaction();
     return successResponseData(res, event, 200, messages.addEventSuccess);
   } catch (error) {
     console.log(messages.somethingWentWrongAddingEvent, error);
-
-    await session.abortTransaction();
 
     return errorResponseWithoutData(
       res,
       messages.somethingWentWrongAddingEvent,
       400
     );
-  } finally {
-    await session.endSession();
   }
 };
 
@@ -184,7 +183,10 @@ const getUpcomingEvents = async (req, res) => {
 
     const currentDate = Date.now();
 
-    const upcomingEvents = await Event.find({ dateTime: { $gt: currentDate } })
+    const upcomingEvents = await Event.find({
+      dateTime: { $gt: currentDate },
+      eventType: { $ne: "trial" },
+    })
       .limit(limit)
       .skip(page * limit);
 

@@ -48,7 +48,7 @@ const registerUser = async (req, res) => {
       timezone,
     };
 
-    const user = createUser(userObject);
+    const user = await createUser(userObject);
 
     if (!user) {
       return errorResponseWithoutData(

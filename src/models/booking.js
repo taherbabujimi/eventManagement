@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
+const { MODELNAMES } = require("../services/constants");
 
 const bookingSchema = new Schema(
   {
     userId: {
       type: mongoose.Types.ObjectId,
-      ref: "User",
+      ref: MODELNAMES.user,
       required: true,
     },
     eventId: {
       type: mongoose.Types.ObjectId,
-      ref: "Event",
+      ref: MODELNAMES.event,
       required: true,
     },
     transactionId: {
@@ -29,6 +30,6 @@ const bookingSchema = new Schema(
   { timestamps: true }
 );
 
-const Booking = mongoose.model("Booking", bookingSchema);
+const Booking = mongoose.model(MODELNAMES.booking, bookingSchema);
 
 module.exports = { Booking };

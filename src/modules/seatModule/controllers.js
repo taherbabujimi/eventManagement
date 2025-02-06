@@ -189,8 +189,6 @@ const bookSeats = async (req, res) => {
 
     const updatedSeats = await Promise.all(updateSeatStatus);
 
-    console.log("Updated Seats: ", updatedSeats);
-
     if (updatedSeats.some((seat) => !seat)) {
       const user = await User.findById(userId);
 

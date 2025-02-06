@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
 const { STATUS } = require("../services/constants");
+const { MODELNAMES } = require("../services/constants");
 
 const seatSchema = new Schema(
   {
     eventId: {
       type: Schema.Types.ObjectId,
-      ref: "Event",
+      ref: MODELNAMES.event,
       required: true,
     },
     seatNo: {
@@ -32,7 +33,7 @@ const seatSchema = new Schema(
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: MODELNAMES.user,
       default: null,
     },
     version: {
@@ -52,6 +53,6 @@ const seatSchema = new Schema(
 seatSchema.index({ eventId: 1, status: 1 });
 seatSchema.index({ eventId: 1, seatNo: 1 }, { unique: true });
 
-const Seat = mongoose.model("Seat", seatSchema);
+const Seat = mongoose.model(MODELNAMES.seat, seatSchema);
 
 module.exports = { Seat };

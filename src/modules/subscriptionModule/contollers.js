@@ -5,6 +5,7 @@ const {
 } = require("../../services/responses");
 const { purchaseSubscriptionSchema } = require("./validations");
 const { Subscription } = require("../../models/subscription");
+const { Event } = require("../../models/event");
 const { SUBSCRIPTION } = require("../../services/constants");
 const moment = require("moment");
 const { default: mongoose } = require("mongoose");
@@ -23,14 +24,18 @@ const purchaseSubscription = async (req, res) => {
     let subscription;
     let currentDate = Date.now();
 
-    const checkExistingSubscription = await Subscription.findOne({
-      userId: req.user._id,
-    });
+    const checkExistingSubscription = await Subscription.findOne(
+      {
+        userId: req.user._id,
+      },
+      {},
+      { sort: { createdAt: -1 } }
+    );
 
     if (checkExistingSubscription) {
       if (
         checkExistingSubscription.expiry > currentDate &&
-        checkExistingSubscription.subscriptionPlan === "oneYear"
+        checkExistingSubscription.subscriptionPlan === SUBSCRIPTION[1]
       ) {
         return errorResponseWithoutData(
           res,
@@ -39,61 +44,57 @@ const purchaseSubscription = async (req, res) => {
         );
       } else if (
         checkExistingSubscription.expiry > currentDate &&
-        checkExistingSubscription.subscriptionPlan === "threeMonth" &&
-        checkExistingSubscription.remainingEvents !== 0
+        checkExistingSubscription.subscriptionPlan === SUBSCRIPTION[0]
       ) {
-        return errorResponseWithoutData(
-          res,
-          `${messages.userAlreadySubscribed}, With remaining ${checkExistingSubscription.remainingEvents} events to use`,
-          400
-        );
+        const previousEventCount = await Event.countDocuments({
+          userId: req.user._id,
+          $and: [
+            { createdAt: { $gte: checkExistingSubscription.purchasedOn } },
+            { createdAt: { $lt: checkExistingSubscription.expiry } },
+          ],
+        });
+
+        console.log("PREVIUOS EVENT COUNTS: ", previousEventCount);
+
+        if (previousEventCount !== 10 && subscriptionPlan === SUBSCRIPTION[0]) {
+          return errorResponseWithoutData(
+            res,
+            `${messages.userAlreadySubscribed}, With remaining ${
+              10 - previousEventCount
+            } events to use`,
+            400
+          );
+        }
       }
     }
-
-    await Subscription.deleteMany({ userId: req.user._id }, { session });
 
     if (subscriptionPlan === SUBSCRIPTION[0]) {
       expiry = moment(currentDate).add(3, "M");
 
-      subscription = await Subscription.create(
-        [
-          {
-            userId: req.user._id,
-            subscriptionPlan,
-            purchasedOn: currentDate,
-            expiry,
-            remainingEvents: 10,
-          },
-        ],
-        { session }
-      );
+      subscription = await Subscription.create({
+        userId: req.user._id,
+        subscriptionPlan,
+        purchasedOn: currentDate,
+        expiry,
+      });
     } else {
       expiry = moment(currentDate).add(1, "year");
 
-      subscription = await Subscription.create(
-        [
-          {
-            userId: req.user._id,
-            subscriptionPlan,
-            purchasedOn: currentDate,
-            expiry,
-          },
-        ],
-        { session }
-      );
+      subscription = await Subscription.create({
+        userId: req.user._id,
+        subscriptionPlan,
+        purchasedOn: currentDate,
+        expiry,
+      });
     }
 
     if (!subscription) {
-      await session.abortTransaction();
-
       return errorResponseWithoutData(
         res,
         messages.errorPurchaseSubscription,
         400
       );
     }
-
-    await session.commitTransaction();
 
     return successResponseData(
       res,
@@ -102,8 +103,6 @@ const purchaseSubscription = async (req, res) => {
       messages.successPurchaseSubscription
     );
   } catch (error) {
-    await session.abortTransaction();
-
     console.log(messages.errorPurchaseSubscription, error);
 
     return errorResponseWithoutData(
@@ -111,8 +110,6 @@ const purchaseSubscription = async (req, res) => {
       `${messages.errorPurchaseSubscription} : ${error}`,
       400
     );
-  } finally {
-    await session.endSession();
   }
 };
 

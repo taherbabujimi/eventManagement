@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
+const { EVENTTYPE } = require("../services/constants");
+const { MODELNAMES } = require("../services/constants");
 
 const eventSchema = new Schema(
   {
@@ -22,7 +24,7 @@ const eventSchema = new Schema(
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: MODELNAMES.user,
       required: true,
     },
     description: {
@@ -35,12 +37,12 @@ const eventSchema = new Schema(
     },
     eventType: {
       type: String,
-      enum: ["trial", "live"],
+      enum: EVENTTYPE,
     },
   },
   { timestamps: true }
 );
 
-const Event = mongoose.model("Event", eventSchema);
+const Event = mongoose.model(MODELNAMES.event, eventSchema);
 
 module.exports = { Event };

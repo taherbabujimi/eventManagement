@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { commonMessages } = require("../services/commonMessages");
 
 const connectDB = async function () {
   try {
@@ -6,10 +7,10 @@ const connectDB = async function () {
       `${process.env.MONGODB_URI}${process.env.DB_NAME}`
     );
     console.log(
-      `MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`
+      `${commonMessages.serverConnected}${connectionInstance.connection.host}`
     );
   } catch (error) {
-    console.log("MONGODB Connection error: ", error);
+    console.log(commonMessages.connectingServerError, error);
     process.exit(1);
   }
 };
