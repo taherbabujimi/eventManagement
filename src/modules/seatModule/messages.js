@@ -12,6 +12,8 @@ const messages = {
     "Seats with Expired Reservation updated successfully",
   errorBookingSeats: "Something went wrong while booking seats.",
   bookingSuccessfull: "Your seats are booked successfully",
+  seatsAlreadyBooked:
+    "Seats slected by you were purchased by someone else, you will be refunded.",
 };
 
 module.exports = { messages };

@@ -15,30 +15,40 @@ const {
   resetPasswordSchema,
   updateUserProfileSchema,
 } = require("./validations");
-const { findOne, generateForgotPasswordToken } = require("./helpers");
+const {
+  findOneUser,
+  generateForgotPasswordToken,
+  removeWhitespaces,
+  createUser,
+} = require("./helpers");
 const { emailTransport } = require("../../services/mailTransport");
-const { link } = require("./constants");
+const { link, forgotPasswordSubject } = require("./constants");
 
 const registerUser = async (req, res) => {
   try {
     const validationResponse = userRegisterSchema(req.body, res);
     if (validationResponse !== false) return;
 
-    const { username, email, password, usertype, timezone } = req.body;
+    const { email, password, usertype, timezone } = req.body;
+    let username = req.body.username;
 
-    const existedUser = await findOne({ email });
+    username = removeWhitespaces(username);
+
+    const existedUser = await findOneUser({ email });
 
     if (existedUser) {
       return errorResponseWithoutData(res, messages.userAlreadyExists, 400);
     }
 
-    const user = await User.create({
+    let userObject = {
       username,
       email,
       password,
       usertype,
       timezone,
-    });
+    };
+
+    const user = createUser(userObject);
 
     if (!user) {
       return errorResponseWithoutData(
@@ -67,7 +77,7 @@ const userLogin = async (req, res) => {
 
     const { email, password } = req.body;
 
-    const user = await findOne({ email });
+    const user = await findOneUser({ email });
 
     if (!user) {
       return errorResponseWithoutData(res, messages.userNotExist, 400);
@@ -98,7 +108,7 @@ const forgotPassword = async (req, res) => {
     const currentTime = Date.now();
     const { email } = req.body;
 
-    const user = await findOne({ email });
+    const user = await findOneUser({ email });
 
     if (!user) {
       return errorResponseWithoutData(res, messages.userNotExist, 400);
@@ -113,7 +123,7 @@ const forgotPassword = async (req, res) => {
 
     const forgotPasswordToken = await generateForgotPasswordToken(email);
 
-    const link = `${link}${forgotPasswordToken}`;
+    const url = `${link}${forgotPasswordToken}`;
 
     successResponseWithoutData(res, messages.resetPasswordMail, 200, {
       token: forgotPasswordToken,
@@ -124,13 +134,13 @@ const forgotPassword = async (req, res) => {
 
     const html = pug.renderFile(
       path.join(__dirname, "./view/forgotPassword.pug"),
-      { link }
+      { url }
     );
 
     await emailTransport(
-      "taher.babuji@mindinventory.com",
+      process.env.ADMIN_EMAIL,
       email,
-      "Link for Resetting your Password",
+      forgotPasswordSubject,
       html
     );
   } catch (error) {
@@ -161,7 +171,7 @@ const resetPassword = async (req, res) => {
       return errorResponseWithoutData(res, messages.invalidRequest, 400);
     }
 
-    const user = await findOne({ email: decodedToken.email });
+    const user = await findOneUser({ email: decodedToken.email });
 
     if (!user) {
       return errorResponseWithoutData(

@@ -9,11 +9,13 @@ const { Event } = require("../../models/event");
 const { Booking } = require("../../models/booking");
 const { addSeatsSchema, selectSeatsSchema } = require("./validations");
 const { Seat } = require("../../models/seat");
+const { User } = require("../../models/user");
 const mongoose = require("mongoose");
 const path = require("path");
 const pug = require("pug");
 const fs = require("fs");
 const { emailTransport } = require("../../services/mailTransport");
+const { paymentRefundSubject } = require("./constants");
 
 const addSeats = async (req, res) => {
   try {
@@ -190,20 +192,24 @@ const bookSeats = async (req, res) => {
     console.log("Updated Seats: ", updatedSeats);
 
     if (updatedSeats.some((seat) => !seat)) {
+      const user = await User.findById(userId);
+
       await session.abortTransaction();
 
       const htmlPath = path.join(__dirname, "./view/paymentRefund.html");
 
       const html = fs.readFileSync(htmlPath, "utf-8");
 
+      errorResponseWithoutData(res, messages.seatsAlreadyBooked, 400);
+
       await emailTransport(
-        "taher.babuji@mindinventory.com",
-        "aliasgertaher@gmail.com",
-        "Refund Notification: Seat Booking Unsuccessful",
+        process.env.ADMIN_EMAIL,
+        user.email,
+        paymentRefundSubject,
         html
       );
 
-      return errorResponseWithoutData(res, messages.errorBookingSeats, 400);
+      return;
     }
 
     await session.commitTransaction();
