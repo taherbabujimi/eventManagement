@@ -1,6 +1,7 @@
 const pug = require("pug");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const moment = require("moment-timezone");
 const { User } = require("../../models/user");
 const {
   errorResponseWithoutData,
@@ -40,6 +41,12 @@ const registerUser = async (req, res) => {
       return errorResponseWithoutData(res, messages.userAlreadyExists, 400);
     }
 
+    const isValid = moment.tz.names().includes(timezone);
+
+    if (isValid === false) {
+      return errorResponseWithoutData(res, messages.invalidTimeZone, 400);
+    }
+
     let userObject = {
       username,
       email,
@@ -65,7 +72,6 @@ const registerUser = async (req, res) => {
       messages.userRegisterSuccessfull
     );
   } catch (error) {
-    console.log(messages.errorWhileUserRegister, error);
     return errorResponseWithoutData(res, messages.errorWhileUserRegister, 400);
   }
 };

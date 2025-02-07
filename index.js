@@ -4,11 +4,8 @@ const { connectDB } = require("./src/db/index");
 const app = express();
 const indexRoute = require("./src/routers/indexRoute");
 
-dotenv.config({
-  path: "./.env",
-});
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 
-// For parsing the express payloads
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -22,17 +19,23 @@ app.use((req, res, next) => {
 
 app.use("/", indexRoute);
 
-connectDB()
-  .then(() => {
-    app.on("error", (error) => {
-      console.log("ERROR: ", error);
-      throw error;
-    });
+if (require.main === module) {
+  connectDB()
+    .then(() => {
+      app.on("error", (error) => {
+        console.log("ERROR: ", error);
+        throw error;
+      });
 
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server is running at PORT: ${process.env.PORT}`);
+      app.listen(process.env.PORT || 3000, () => {
+        console.log(
+          `Server is running at PORT: ${process.env.PORT}, MODE: ${process.env.NODE_ENV}`
+        );
+      });
+    })
+    .catch((error) => {
+      console.log("MONGODB connection failed !!!", error);
     });
-  })
-  .catch((error) => {
-    console.log("MONGODB connection failed !!!", error);
-  });
+}
+
+module.exports = { app, connectDB };

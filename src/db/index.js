@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { commonMessages } = require("../services/commonMessages");
 
 const connectDB = async function () {
+  console.log(`${process.env.MONGODB_URI}${process.env.DB_NAME}`);
   try {
     const connectionInstance = await mongoose.connect(
       `${process.env.MONGODB_URI}${process.env.DB_NAME}`

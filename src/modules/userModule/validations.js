@@ -16,8 +16,6 @@ const userRegisterSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(validationResult.error);
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,

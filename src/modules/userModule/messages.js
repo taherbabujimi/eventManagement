@@ -21,7 +21,8 @@ let messages = {
   oneValueRequiredToUpdate:
     "Atleast one value is required to update user profile",
   updateUserProfileSuccessfull: "User profile updated successfully",
-  valueCannotBeEmpty: "Values cannot be empty."
+  valueCannotBeEmpty: "Values cannot be empty.",
+  invalidTimeZone: "Invalid timezone, Please provide valid timezone.",
 };
 
 module.exports = {
