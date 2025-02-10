@@ -101,7 +101,6 @@ const userLogin = async (req, res) => {
       token: accessToken,
     });
   } catch (error) {
-    console.log(messages.errorWhileUserLogin, error);
     return errorResponseWithoutData(res, messages.errorWhileUserLogin, 400);
   }
 };
@@ -150,8 +149,6 @@ const forgotPassword = async (req, res) => {
       html
     );
   } catch (error) {
-    console.log(messages.errorSendingForgotPasswordMail, error);
-
     return errorResponseWithoutData(
       res,
       messages.errorSendingForgotPasswordMail,
@@ -199,8 +196,6 @@ const resetPassword = async (req, res) => {
 
     return successResponseWithoutData(res, messages.resetPasswordSuccess, 200);
   } catch (error) {
-    console.log(messages.somethingWentWrongResetingPassword, error);
-
     return errorResponseWithoutData(
       res,
       `${messages.somethingWentWrongResetingPassword}: ${error}`,
@@ -216,7 +211,7 @@ const updateUserProfile = async (req, res) => {
 
     const { username, email } = req.body;
 
-    if (username?.trim() === "" || email?.trim() === "") {
+    if (username?.trim() === "") {
       return errorResponseWithoutData(res, messages.valueCannotBeEmpty, 400);
     }
 

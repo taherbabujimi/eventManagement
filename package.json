@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --recursive test/**/*.js --exit",
+    "test": "NODE_ENV=test nyc mocha --recursive test/**/*.js --exit",
     "start": "cross-env NODE_ENV=development nodemon index.js"
   },
   "keywords": [],
@@ -31,6 +31,7 @@
     "chai-http": "^5.1.1",
     "cross-env": "^7.0.3",
     "mocha": "^11.1.0",
+    "nyc": "^17.1.0",
     "request": "^2.88.2"
   }
 }
