@@ -59,9 +59,7 @@ const purchaseSubscription = async (req, res) => {
         if (previousEventCount !== 10 && subscriptionPlan === SUBSCRIPTION[0]) {
           return errorResponseWithoutData(
             res,
-            `${messages.userAlreadySubscribed}, With remaining ${
-              10 - previousEventCount
-            } events to use`,
+            messages.userAlreadySubscribedAndHaveRemainingEvents,
             400
           );
         }

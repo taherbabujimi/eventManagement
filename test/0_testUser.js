@@ -1,6 +1,5 @@
 const chai = require("chai");
 const expect = chai.expect;
-const should = chai.should();
 const request = require("request");
 const { app, connectDB } = require("../index");
 const { messages } = require("../src/modules/userModule/messages");
@@ -20,9 +19,11 @@ describe("User API Tests", function () {
       .catch(done);
   });
 
-  after(function (done) {
-    server.close(done);
-  });
+  function closeServer() {
+    return server.close();
+  }
+
+  module.exports = { closeServer };
 
   describe("User Registration API Tests", function () {
     beforeEach(function (done) {
@@ -45,6 +46,13 @@ describe("User API Tests", function () {
           email: "test3@example.com",
           password: "password123",
           usertype: "eventManager",
+          timezone: "Asia/Kolkata",
+        },
+        {
+          username: "testuser4",
+          email: "test4@example.com",
+          password: "password123",
+          usertype: "attendee",
           timezone: "Asia/Kolkata",
         },
       ])
@@ -70,7 +78,7 @@ describe("User API Tests", function () {
       username: "testuser",
       email: "test@example.com",
       password: "password123",
-      usertype: "eventManager",
+      usertype: "attendee",
       timezone: "Asia/Kolkata",
     };
 
@@ -294,7 +302,7 @@ describe("User API Tests", function () {
     };
 
     const validUserData = {
-      email: "babujitaher7@gmail.com",
+      email: "test3@example.com",
       password: "password123",
     };
 

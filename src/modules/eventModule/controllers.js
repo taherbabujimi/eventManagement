@@ -12,30 +12,25 @@ const cloudinary = require("cloudinary").v2;
 const { SORT_BY, SORT_TYPE } = require("./constants");
 const { User } = require("../../models/user");
 const { Subscription } = require("../../models/subscription");
-const { default: mongoose } = require("mongoose");
 const { SUBSCRIPTION } = require("../../services/constants");
 
 const getUploadSignature = async (req, res) => {
   try {
     const timestamp = new Date().getTime();
-    const signature = await cloudinary.utils.api_sign_request(
+
+    const signature = await cloudinary.utils.sign_request(
       {
         timestamp,
       },
-      process.env.CLOUDINARY_API_SECRET
+      {
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+        api_key: process.env.CLOUDINARY_API_KEY,
+      }
     );
-
-    if (!signature) {
-      return errorResponseWithoutData(
-        res,
-        messages.errorSendingUploadSignature,
-        400
-      );
-    }
 
     return successResponseData(
       res,
-      { timestamp: timestamp, signature: signature },
+      { timestamp: signature.timestamp, signature: signature.signature },
       200
     );
   } catch (error) {
