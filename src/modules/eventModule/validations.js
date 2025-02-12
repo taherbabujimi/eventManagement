@@ -45,7 +45,8 @@ const updateEventSchema = (body, res) => {
     const Schema = joi.object({
       name: joi.string().min(3).max(30),
       title: joi.string().min(3).max(30),
-      numberOfSeats: joi.number(),
+      description: joi.string().min(3),
+      location: joi.string().min(3),
       image: joi.string(),
       dateTime: joi.date(),
     });

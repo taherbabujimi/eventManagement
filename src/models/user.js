@@ -36,6 +36,10 @@ const userSchema = new Schema(
     savedEvents: {
       type: Array,
     },
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+    },
   },
   { timestamps: true }
 );

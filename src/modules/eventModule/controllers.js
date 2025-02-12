@@ -54,13 +54,10 @@ const addEvent = async (req, res) => {
       { sort: { createdAt: -1 } }
     );
 
-    console.log("USER SUBSCRIPTION: ", subscribed);
-
     const currentDate = Date.now();
 
     if (!subscribed) {
       let testHours = Math.abs(currentDate - req.user.createdAt) / 36e5;
-      console.log("Test Hours: ", testHours);
 
       if (testHours >= 72) {
         return errorResponseWithoutData(res, messages.trialCompleted, 400);
@@ -110,8 +107,6 @@ const addEvent = async (req, res) => {
           { createdAt: { $lt: subscribed.expiry } },
         ],
       });
-
-      console.log("PREVIUOS EVENT COUNT: ", previousEventCount);
 
       if (previousEventCount === 10) {
         return errorResponseWithoutData(
@@ -244,7 +239,7 @@ const getUpcomingEventsByEventManager = async (req, res) => {
     return successResponseData(
       res,
       events,
-      400,
+      200,
       messages.allEventsByUserFetched,
       { count: eventCount }
     );
@@ -274,13 +269,14 @@ const updateEvent = async (req, res) => {
       return errorResponseWithoutData(res, messages.eventAccessNotAllowed, 400);
     }
 
-    const { name, title, numberOfSeats, image, dateTime } = req.body;
+    const { name, title, image, dateTime, description, location } = req.body;
 
     if (
       name?.trim() === "" ||
       title?.trim() === "" ||
-      numberOfSeats?.trim() === "" ||
       image?.trim() === "" ||
+      description?.trim() === "" ||
+      location?.trim() === "" ||
       dateTime?.trim() === ""
     ) {
       return errorResponseWithoutData(res, messages.valueCannotBeEmpty, 400);
@@ -291,9 +287,10 @@ const updateEvent = async (req, res) => {
       {
         name,
         title,
-        numberOfSeats,
         image,
         dateTime,
+        description,
+        location,
       },
       { new: true }
     );

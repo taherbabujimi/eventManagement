@@ -54,8 +54,6 @@ const purchaseSubscription = async (req, res) => {
           ],
         });
 
-        console.log("PREVIUOS EVENT COUNTS: ", previousEventCount);
-
         if (previousEventCount !== 10 && subscriptionPlan === SUBSCRIPTION[0]) {
           return errorResponseWithoutData(
             res,

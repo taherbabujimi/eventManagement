@@ -55,6 +55,13 @@ describe("User API Tests", function () {
           usertype: "attendee",
           timezone: "Asia/Kolkata",
         },
+        {
+          username: "unsubscribedUser",
+          email: "unsubscribedUser@example.com",
+          password: "password123",
+          usertype: "eventManager",
+          timezone: "Asia/Kolkata",
+        },
       ])
         .then(() => done())
         .catch(done);
