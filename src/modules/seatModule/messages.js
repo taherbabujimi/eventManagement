@@ -14,6 +14,7 @@ const messages = {
   bookingSuccessfull: "Your seats are booked successfully",
   seatsAlreadyBooked:
     "Seats slected by you were purchased by someone else, you will be refunded.",
+  seatsAlreadyReserved: "The selected seats have been reserved by another user",
 };
 
 module.exports = { messages };

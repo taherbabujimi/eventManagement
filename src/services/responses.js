@@ -49,27 +49,8 @@ const errorResponseWithoutData = (res, message, code = 0, metaData = {}) => {
   return res.status(code).send(response);
 };
 
-const errorResponseData = (res, message, data, code = 400) => {
-  const response = {
-    code,
-    message,
-    data,
-  };
-  return res.status(code).send(response);
-};
-
-const validationErrorResponseData = (res, message, code = 400) => {
-  const response = {
-    code,
-    message,
-  };
-  return res.status(code).send(response);
-};
-
 module.exports = {
   successResponseData,
   successResponseWithoutData,
   errorResponseWithoutData,
-  errorResponseData,
-  validationErrorResponseData,
 };

@@ -9,7 +9,7 @@ const verifyJWT = async (req, res, next) => {
   try {
     const token = req.header("Authorization").replace("Bearer ", "");
 
-    if (!token) {
+    if (!token || token === null || token === undefined) {
       return errorResponseWithoutData(res, commonMessages.badRequest, 400);
     }
 
@@ -25,7 +25,6 @@ const verifyJWT = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error);
     return errorResponseWithoutData(res, commonMessages.badRequest, 400);
   }
 };

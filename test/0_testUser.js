@@ -62,6 +62,20 @@ describe("User API Tests", function () {
           usertype: "eventManager",
           timezone: "Asia/Kolkata",
         },
+        {
+          username: "rahul",
+          email: "rahul@example.com",
+          password: "password123",
+          usertype: "attendee",
+          timezone: "Asia/Kolkata",
+        },
+        {
+          username: "testuser33",
+          email: "test33@example.com",
+          password: "password123",
+          usertype: "eventManager",
+          timezone: "Asia/Kolkata",
+        },
       ])
         .then(() => done())
         .catch(done);
@@ -221,7 +235,6 @@ describe("User API Tests", function () {
             return;
           }
 
-          // Second registration with same email
           makeRequest(
             {
               ...validUserData,
@@ -313,6 +326,11 @@ describe("User API Tests", function () {
       password: "password123",
     };
 
+    const invalidUserData = {
+      email: "test3example",
+      password: "pa",
+    };
+
     const notRegisteredUserData = {
       email: "test2@example.com",
       password: "password123",
@@ -366,6 +384,26 @@ describe("User API Tests", function () {
     });
 
     describe("validation errors", function () {
+      it("should return error if user provides invalid login credentials", function (done) {
+        makeLoginRequest(invalidUserData, (error, result) => {
+          if (error) {
+            done(error);
+            return;
+          }
+
+          try {
+            const { response, body } = result;
+            expect(body.data).to.equal(null);
+            expect(response.statusCode).to.equal(400);
+            expect(body.meta.code).to.equal(400);
+            done();
+          } catch (error) {
+            done(error);
+            return;
+          }
+        });
+      });
+
       it("should reject user login if user have not registered", function (done) {
         makeLoginRequest(notRegisteredUserData, (error, result) => {
           if (error) {
@@ -460,6 +498,30 @@ describe("User API Tests", function () {
     });
 
     describe("validation errors", function () {
+      it("should return error if the user provides invalid email", function (done) {
+        makeForgotPasswordRequest(
+          {
+            email: "testexample",
+          },
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+
+              expect(response.statusCode).to.equal(400);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
       it("should not send mail if the user does not exist in database", function (done) {
         makeForgotPasswordRequest(invalidEmail, (error, result) => {
           if (error) {
@@ -545,6 +607,32 @@ describe("User API Tests", function () {
     });
 
     describe("validation errors", async function () {
+      it("should return error if the provided new password is invalid", function (done) {
+        makeResetPasswordRequest(
+          {
+            newPassword: "ta",
+          },
+          forgotPasswordToken,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+              expect(response.statusCode).to.equal(400);
+              expect(body.data).to.equal(null);
+              expect(body.meta.code).to.equal(400);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
       it("should return a error if the token is empty", function (done) {
         request.post(
           `http://localhost:3000/v1/users/resetPassword`,
@@ -673,6 +761,32 @@ describe("User API Tests", function () {
     });
 
     describe("validation errors", function () {
+      it("should return error if invalid data is provided by the user", function (done) {
+        makeUpdateUserProfileRequest(
+          {
+            username: "dh",
+            email: "dhonigmail",
+          },
+          token,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+              expect(response.statusCode).to.equal(400);
+              expect(body.meta.code).to.equal(400);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
       it("should return error if only whitespaces are provided instead of valid data", function (done) {
         makeUpdateUserProfileRequest(
           invalidUserData,

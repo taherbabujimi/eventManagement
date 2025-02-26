@@ -19,23 +19,23 @@ app.use((req, res, next) => {
 
 app.use("/", indexRoute);
 
-if (require.main === module) {
-  connectDB()
-    .then(() => {
-      app.on("error", (error) => {
-        console.log("ERROR: ", error);
-        throw error;
-      });
+require.main === module
+  ? connectDB()
+      .then(() => {
+        app.on("error", (error) => {
+          console.log("ERROR: ", error);
+          throw error;
+        });
 
-      app.listen(process.env.PORT || 3000, () => {
-        console.log(
-          `Server is running at PORT: ${process.env.PORT}, MODE: ${process.env.NODE_ENV}`
-        );
-      });
-    })
-    .catch((error) => {
-      console.log("MONGODB connection failed !!!", error);
-    });
-}
+        app.listen(process.env.PORT || 3000, () => {
+          console.log(
+            `Server is running at PORT: ${process.env.PORT}, MODE: ${process.env.NODE_ENV}`
+          );
+        });
+      })
+      .catch((error) => {
+        console.log("MONGODB connection failed !!!", error);
+      })
+  : null;
 
 module.exports = { app, connectDB };

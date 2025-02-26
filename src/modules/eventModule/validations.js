@@ -16,11 +16,6 @@ const addEventSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(
-        commonMessages.errorWhileValidatingValues,
-        validationResult.error
-      );
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
@@ -30,8 +25,6 @@ const addEventSchema = (body, res) => {
       return false;
     }
   } catch (error) {
-    console.log(`${commonMessages.errorWhileValidatingValues}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${commonMessages.errorWhileValidatingValues}: ${error}`,
@@ -54,10 +47,6 @@ const updateEventSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(
-        `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`
-      );
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
@@ -67,8 +56,6 @@ const updateEventSchema = (body, res) => {
       return false;
     }
   } catch (error) {
-    console.log(`${commonMessages.errorWhileValidatingValues}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${commonMessages.errorWhileValidatingValues}: ${error}`,

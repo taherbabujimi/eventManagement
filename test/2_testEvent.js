@@ -1,7 +1,7 @@
 const chai = require("chai");
 const expect = chai.expect;
 const request = require("request");
-const { closeServer } = require("./0_testUser");
+
 const moment = require("moment");
 const { messages } = require("../src/modules/eventModule/messages");
 const { Event } = require("../src/models/event");
@@ -14,6 +14,7 @@ describe("Event API Tests", function () {
   let tokenWithThreeMonthSubscription;
   let tokenWithoutSubscription;
   let tokenAttendee;
+  let tokenAttendeeWithoutSavedEvents;
   let userWithSubscriptionId;
   let UserWithThreeMonthSubscriptionId;
   let eventId;
@@ -59,6 +60,23 @@ describe("Event API Tests", function () {
       "http://localhost:3000/v1/users/userLogin",
       {
         json: {
+          email: "rahul@example.com",
+          password: "password123",
+        },
+      },
+      (error, response, body) => {
+        if (error) {
+          done(error);
+        }
+
+        tokenAttendeeWithoutSavedEvents = body.meta.token;
+      }
+    );
+
+    request.post(
+      "http://localhost:3000/v1/users/userLogin",
+      {
+        json: {
           email: "babujitaher7@gmail.com",
           password: "password123",
         },
@@ -92,11 +110,6 @@ describe("Event API Tests", function () {
         done();
       }
     );
-  });
-
-  after(function (done) {
-    closeServer();
-    done();
   });
 
   describe("Get Upload Signature API Tests", function () {
@@ -178,6 +191,16 @@ describe("Event API Tests", function () {
       location: "Sola, MindInventory, Ahmedabad",
     };
 
+    const invalidEventData = {
+      name: "ta",
+      title: "ta",
+      image:
+        "http://res.cloudinary.com/dztt4qqb8/image/upload/v1738317550/k8bc2t3dwbldmjf6vpp8.jpg",
+      dateTime: moment(Date.now()).add(15, "day"),
+      description: "concert",
+      location: "Sola, MindInventory, Ahmedabad",
+    };
+
     describe("Add Event Successfully", function () {
       it("should successfully add event", function (done) {
         makeAddEventRequest(
@@ -191,7 +214,6 @@ describe("Event API Tests", function () {
 
             try {
               const { response, body } = result;
-              console.log("EVENT BODY: ", body);
               eventId = body.data._id;
               expect(body.meta.code).to.equal(200);
               expect(body.meta.message).to.equal(messages.addEventSuccess);
@@ -206,6 +228,54 @@ describe("Event API Tests", function () {
     });
 
     describe("Edge Cases", function () {
+      it("should return error if event already exists with provided title", function (done) {
+        makeAddEventRequest(
+          tokenWithOneYearSubscription,
+          validEventData,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+              expect(body.meta.code).to.equal(400);
+              expect(response.statusCode).to.equal(400);
+              expect(body.meta.message).to.equal(messages.eventExists);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
+      it("should return error if the provided data is not valid", function (done) {
+        makeAddEventRequest(
+          tokenWithOneYearSubscription,
+          invalidEventData,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+              expect(response.statusCode).to.equal(400);
+              expect(body.meta.code).to.equal(400);
+              expect(body.data).to.equal(null);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
       it("should create trial events successfully if user have not subscribed and user still have trial period", function (done) {
         makeAddEventRequest(
           tokenWithoutSubscription,
@@ -520,47 +590,344 @@ describe("Event API Tests", function () {
     });
   });
 
-  // describe("Update Event API Tests", function () {
-  //   const makeUpdateEventRequest = (loginToken, updateEventData, callback) => {
-  //     request.put(
-  //       `http://localhost:3000/v1/events/updateEvent?eventId=${eventId}`,
-  //       {
-  //         json: updateEventData,
-  //       },
-  //       (error, response, body) => {
-  //         if (error) {
-  //           callback(error);
-  //           return;
-  //         }
-  //         callback(null, { response, body });
-  //       }
-  //     );
-  //   };
+  describe("Update Event API Tests", function () {
+    const makeUpdateEventRequest = (loginToken, updateEventData, callback) => {
+      request.put(
+        `http://localhost:3000/v1/events/updateEvent?eventId=${eventId}`,
+        {
+          json: updateEventData,
+          headers: { Authorization: `Bearer ${loginToken}` },
+        },
+        (error, response, body) => {
+          if (error) {
+            callback(error);
+            return;
+          }
+          callback(null, { response, body });
+        }
+      );
+    };
 
-  //   const updateEventData = {
-  //     name: "dhonievent22",
-  //     title: "dhonievent22",
-  //     image:
-  //       "http://res.cloudinary.com/dztt4qqb8/image/upload/v1738328713/prycz5bjglebopc6ztmo.jpg",
-  //     description: "very good concert",
-  //     location: "Pune, Maharashtra",
-  //   };
+    const updateEventData = {
+      name: "dhonievent22",
+      title: "dhonievent22",
+      image:
+        "http://res.cloudinary.com/dztt4qqb8/image/upload/v1738328713/prycz5bjglebopc6ztmo.jpg",
+      description: "very good concert",
+      location: "Pune, Maharashtra",
+    };
 
-  //   describe("Update Event Successfully", function () {
-  //     it("should successfully update event", function (done) {
-  //       makeUpdateEventRequest(
-  //         tokenWithOneYearSubscription,
-  //         updateEventData,
-  //         (error, result) => {
-  //           if (error) {
-  //             done(error);
-  //             return;
-  //           }
+    const invalidUpdateEventData = {
+      name: "dhonievent22",
+      title: "dhonievent22",
+      image: "    ",
+      location: "    ",
+    };
 
+    const invalidUpdateEventData2 = {
+      name: "dhonievent22",
+      title: "dhonievent22",
+      image: "",
+      location: "",
+    };
 
-  //         }
-  //       );
-  //     });
-  //   });
-  // });
+    describe("Update Event Successfully", function () {
+      it("should successfully update event", function (done) {
+        makeUpdateEventRequest(
+          tokenWithOneYearSubscription,
+          updateEventData,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+
+            expect(response.statusCode).to.equal(200);
+            expect(body.meta.code).to.equal(200);
+            expect(body.meta.message).to.equal(
+              messages.userUpdatedSuccessfully
+            );
+
+            done();
+          }
+        );
+      });
+    });
+
+    describe("Edge Cases", function () {
+      it("should return error if any user is trying to update event which does not belong to them", function (done) {
+        makeUpdateEventRequest(
+          tokenWithThreeMonthSubscription,
+          updateEventData,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            expect(response.statusCode).to.equal(400);
+            expect(body.meta.code).to.equal(400);
+            expect(body.meta.message).to.equal(messages.eventAccessNotAllowed);
+
+            done();
+          }
+        );
+      });
+
+      it("should return error if any empty key is there in the data", function (done) {
+        makeUpdateEventRequest(
+          tokenWithOneYearSubscription,
+          invalidUpdateEventData,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            expect(response.statusCode).to.equal(400);
+            expect(body.meta.code).to.equal(400);
+            expect(body.meta.message).to.equal(messages.valueCannotBeEmpty);
+
+            done();
+          }
+        );
+      });
+
+      it("should return validation error if any string value have less than three characters", function (done) {
+        makeUpdateEventRequest(
+          tokenWithOneYearSubscription,
+          invalidUpdateEventData2,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            expect(response.statusCode).to.equal(400);
+            expect(body.meta.code).to.equal(400);
+
+            done();
+          }
+        );
+      });
+    });
+  });
+
+  describe("Save Event API Tests", function () {
+    const makeSaveEventRequest = (eventId, loginToken, callback) => {
+      request.post(
+        `http://localhost:3000/v1/events/saveEvent?eventId=${eventId}`,
+        { headers: { Authorization: `Bearer ${loginToken}` } },
+        (error, response, body) => {
+          if (error) {
+            callback(error);
+            return;
+          }
+          callback(null, { response, body });
+        }
+      );
+    };
+
+    describe("Save Event Successfully", function () {
+      it("should successfully save event", function (done) {
+        makeSaveEventRequest(eventId, tokenAttendee, (error, result) => {
+          if (error) {
+            done(error);
+            return;
+          }
+
+          const { response, body } = result;
+          expect(response.statusCode).to.equal(200);
+          let data = JSON.parse(response.body);
+          expect(data.data).to.equal(null);
+          expect(data.meta.code).to.equal(200);
+          expect(data.meta.message).to.equal(messages.successSavingEvent);
+          done();
+        });
+      });
+    });
+
+    describe("Edge Cases", function () {
+      it("should return error if user have already saved the selected event", function (done) {
+        makeSaveEventRequest(eventId, tokenAttendee, (error, result) => {
+          if (error) {
+            done(error);
+            return;
+          }
+
+          const { response, body } = result;
+          expect(response.statusCode).to.equal(200);
+          let data = JSON.parse(response.body);
+          expect(data.data).to.equal(null);
+          expect(data.meta.code).to.equal(200);
+          expect(data.meta.message).to.equal(messages.eventAlreadySaved);
+          done();
+        });
+      });
+
+      it("should return error if the event does not exist", function (done) {
+        makeSaveEventRequest(
+          "67af0b2022258e7c59118366",
+          tokenAttendee,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            expect(response.statusCode).to.equal(400);
+            let data = JSON.parse(response.body);
+            expect(data.meta.code).to.equal(400);
+            expect(data.meta.message).to.equal(messages.eventNotExists);
+            done();
+          }
+        );
+      });
+    });
+  });
+
+  describe("Get Saved Events API Tests", function () {
+    const makeGetSavedEventsRequest = (loginToken, callback) => {
+      request.get(
+        "http://localhost:3000/v1/events//getSavedEvents",
+        {
+          headers: { Authorization: `Bearer ${loginToken}` },
+        },
+        (error, response, body) => {
+          if (error) {
+            callback(error);
+            return;
+          }
+          callback(null, { response, body });
+        }
+      );
+    };
+
+    describe("Get Saved Events Successfully", function () {
+      it("should get all saved events successfully", (done) => {
+        makeGetSavedEventsRequest(tokenAttendee, (error, result) => {
+          if (error) {
+            done(error);
+            return;
+          }
+
+          const { response, body } = result;
+          let data = JSON.parse(response.body);
+          expect(response.statusCode).to.equal(200);
+          expect(data.meta.code).to.equal(200);
+          expect(data.meta.message).to.equal(
+            messages.successfullyFetchedSavedEvents
+          );
+          done();
+        });
+      });
+    });
+
+    describe("Edge Cases", function () {
+      it("should return a message, if user have not saved any events previously", (done) => {
+        makeGetSavedEventsRequest(
+          tokenAttendeeWithoutSavedEvents,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            let data = JSON.parse(response.body);
+            expect(response.statusCode).to.equal(200);
+            expect(data.meta.code).to.equal(200);
+            expect(data.meta.message).to.equal(messages.zeroSavedEvents);
+            done();
+          }
+        );
+      });
+    });
+  });
+
+  describe("Get Past Events Created By Event Manager Successfully", function () {
+    const makeGetPastEventsCreatedByEventManagerRequest = (
+      loginToken,
+      callback
+    ) => {
+      request.get(
+        "http://localhost:3000/v1/events/getPastEventsByUser",
+        {
+          headers: { Authorization: `Bearer ${loginToken}` },
+        },
+        (error, response, body) => {
+          if (error) {
+            callback(error);
+            return;
+          }
+          callback(null, { response, body });
+        }
+      );
+    };
+
+    describe("Get Past Events Successfully", function () {
+      it("should get all the past events of the event manager", async () => {
+        await Event.create({
+          name: "taherevent23",
+          title: "taherevent23",
+          image:
+            "http://res.cloudinary.com/dztt4qqb8/image/upload/v1738317550/k8bc2t3dwbldmjf6vpp8.jpg",
+          dateTime: "2025-02-05T10:30:00.000+00:00",
+          description: "concert",
+          location: "Sola, MindInventory, Ahmedabad",
+          userId: userWithSubscriptionId,
+        });
+
+        const result = await new Promise((resolve, reject) => {
+          makeGetPastEventsCreatedByEventManagerRequest(
+            tokenWithOneYearSubscription,
+            (error, result) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(result);
+            }
+          );
+        });
+
+        const { response, body } = result;
+
+        let data = JSON.parse(body);
+
+        expect(response.statusCode).to.equal(200);
+        expect(data.meta.code).to.equal(200);
+        expect(data.meta.message).to.equal(
+          messages.pastEventByManagerFetchedSuccess
+        );
+      });
+    });
+
+    describe("Edge Cases", function () {
+      it("should return success response, if user don't have any previous events", function (done) {
+        makeGetPastEventsCreatedByEventManagerRequest(
+          tokenWithThreeMonthSubscription,
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            const { response, body } = result;
+            const data = JSON.parse(response.body);
+            expect(response.statusCode).to.equal(200);
+            expect(data.meta.code).to.equal(200);
+            expect(data.meta.message).to.equal(messages.zeroPastEventByManager);
+            done();
+          }
+        );
+      });
+    });
+  });
 });

@@ -143,6 +143,32 @@ describe("Subscribe API Tests", function () {
     });
 
     describe("Edge Cases", function () {
+      it("should return error if provided subscription type is invalid", function (done) {
+        makePurchaseSubscriptionRequest(
+          loginTokenUserOneYear,
+          {
+            subscriptionPlan: "fiveMonths",
+          },
+          (error, result) => {
+            if (error) {
+              done(error);
+              return;
+            }
+
+            try {
+              const { response, body } = result;
+              expect(response.statusCode).to.equal(400);
+              expect(body.meta.code).to.equal(400);
+              expect(body.data).to.equal(null);
+              done();
+            } catch (error) {
+              done(error);
+              return;
+            }
+          }
+        );
+      });
+
       it("should return error if user already have one year subscription and it is still not expired", function (done) {
         makePurchaseSubscriptionRequest(
           loginTokenUserOneYear,

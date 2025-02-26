@@ -50,14 +50,8 @@ const addSeats = async (req, res) => {
 
     const seat = await Seat.create(tickets);
 
-    if (!seat) {
-      return errorResponseWithoutData(res, messages.errorAddingSeats, 400);
-    }
-
     return successResponseData(res, seat, 200, messages.seatsAddedSuccessfully);
   } catch (error) {
-    console.log(`${messages.errorAddingSeats}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorAddingSeats}: ${error}`,
@@ -87,7 +81,7 @@ const selectSeats = async (req, res) => {
 
     if (seats.length !== seatIds.length) {
       await session.abortTransaction();
-      return errorResponseWithoutData(res, messages.seatsNotAvailable, 401);
+      return errorResponseWithoutData(res, messages.seatsNotAvailable, 409);
     }
 
     const expiryTime = new Date(Date.now() + 15 * 60 * 1000);
@@ -119,7 +113,7 @@ const selectSeats = async (req, res) => {
 
     if (updatedSeats.some((seat) => !seat)) {
       await session.abortTransaction();
-      return errorResponseWithoutData(res, messages.failedToReserveSeats, 401);
+      return errorResponseWithoutData(res, messages.failedToReserveSeats, 409);
     }
 
     await session.commitTransaction();
@@ -131,7 +125,17 @@ const selectSeats = async (req, res) => {
     );
   } catch (error) {
     await session.abortTransaction();
-    throw error;
+
+    if (
+      error.code === 112 ||
+      (error.errorLabels &&
+        error.errorLabels.includes("TransientTransactionError")) ||
+      error.name === "WriteConflict"
+    ) {
+      return errorResponseWithoutData(res, messages.seatsAlreadyReserved, 409);
+    }
+
+    return errorResponseWithoutData(res, error, 500);
   } finally {
     session.endSession();
   }
@@ -160,11 +164,6 @@ const bookSeats = async (req, res) => {
       ],
       { session }
     );
-
-    if (!booking) {
-      await session.abortTransaction();
-      return errorResponseWithoutData(res, messages.errorBookingSeats, 400);
-    }
 
     const updateSeatStatus = seatIdArray.map((seatId) =>
       Seat.findOneAndUpdate(
@@ -213,19 +212,14 @@ const bookSeats = async (req, res) => {
     await session.commitTransaction();
     return successResponseData(res, booking, 200, messages.bookingSuccessfull);
   } catch (error) {
-    if (session) {
-      await session.abortTransaction();
-    }
-    console.log(`${messages.errorBookingSeats}: ${error}`);
+    await session.abortTransaction();
     return errorResponseWithoutData(
       res,
       `${messages.errorBookingSeats}: ${error}`,
       400
     );
   } finally {
-    if (session) {
-      session.endSession();
-    }
+    session.endSession();
   }
 };
 

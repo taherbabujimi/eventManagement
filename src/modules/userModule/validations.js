@@ -43,8 +43,6 @@ const userLoginSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(validationResult.error);
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
@@ -71,8 +69,6 @@ const forgotPasswordSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(validationResult.error);
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
@@ -99,8 +95,6 @@ const resetPasswordSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(validationResult.error);
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,
@@ -128,8 +122,6 @@ const updateUserProfileSchema = (body, res) => {
     const validationResult = Schema.validate(body);
 
     if (validationResult.error) {
-      console.log(validationResult.error);
-
       return errorResponseWithoutData(
         res,
         `${commonMessages.errorWhileValidatingValues}: ${validationResult.error}`,

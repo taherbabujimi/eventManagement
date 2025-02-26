@@ -2,7 +2,6 @@ const { Event } = require("../../models/event");
 const {
   errorResponseWithoutData,
   successResponseData,
-  errorResponseData,
   successResponseWithoutData,
 } = require("../../services/responses");
 const { messages } = require("./messages");
@@ -34,8 +33,6 @@ const getUploadSignature = async (req, res) => {
       200
     );
   } catch (error) {
-    console.log(messages.errorSendingUploadSignature, error);
-
     return errorResponseWithoutData(
       res,
       messages.errorSendingUploadSignature,
@@ -84,14 +81,6 @@ const addEvent = async (req, res) => {
         eventType: "trial",
       });
 
-      if (!event) {
-        return errorResponseWithoutData(
-          res,
-          messages.somethingWentWrongAddingEvent,
-          400
-        );
-      }
-
       return successResponseData(res, event, 200, messages.addEventSuccess);
     }
 
@@ -123,6 +112,7 @@ const addEvent = async (req, res) => {
     const { name, title, dateTime, image, description, location } = req.body;
 
     const existingEvent = await findOne({ title });
+
     if (existingEvent) {
       return errorResponseWithoutData(res, messages.eventExists, 400);
     }
@@ -137,18 +127,8 @@ const addEvent = async (req, res) => {
       location,
     });
 
-    if (!event) {
-      return errorResponseWithoutData(
-        res,
-        messages.somethingWentWrongAddingEvent,
-        400
-      );
-    }
-
     return successResponseData(res, event, 200, messages.addEventSuccess);
   } catch (error) {
-    console.log(messages.somethingWentWrongAddingEvent, error);
-
     return errorResponseWithoutData(
       res,
       messages.somethingWentWrongAddingEvent,
@@ -161,13 +141,9 @@ const getUpcomingEvents = async (req, res) => {
   try {
     let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
 
-    if (page !== 0 && page !== "0") {
-      page -= 1;
-    }
+    page = [0, "0"].indexOf(page) === -1 ? page - 1 : page;
 
-    if (!SORT_BY.includes(sortBy)) {
-      sortBy = SORT_BY[0];
-    }
+    sortBy = SORT_BY.includes(sortBy) ? sortBy : SORT_BY[0];
 
     sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
@@ -180,10 +156,6 @@ const getUpcomingEvents = async (req, res) => {
       .limit(limit)
       .skip(page * limit);
 
-    if (!upcomingEvents) {
-      return successResponseWithoutData(res, messages.noUpcomingEvents, 200);
-    }
-
     return successResponseData(
       res,
       upcomingEvents,
@@ -191,8 +163,6 @@ const getUpcomingEvents = async (req, res) => {
       messages.fetchedUpcomingEvents
     );
   } catch (error) {
-    console.log(`${messages.errorGettingUpcomingEvents}: ${error}`);
-
     errorResponseWithoutData(
       res,
       `${messages.errorGettingUpcomingEvents}: ${error}`,
@@ -205,13 +175,9 @@ const getUpcomingEventsByEventManager = async (req, res) => {
   try {
     let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
 
-    if (page !== 0 && page !== "0") {
-      page -= 1;
-    }
+    page = [0, "0"].indexOf(page) === -1 ? page - 1 : page;
 
-    if (!SORT_BY.includes(sortBy)) {
-      sortBy = SORT_BY[0];
-    }
+    sortBy = SORT_BY.includes(sortBy) ? sortBy : SORT_BY[0];
 
     sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
@@ -228,14 +194,6 @@ const getUpcomingEventsByEventManager = async (req, res) => {
       .skip(page * limit)
       .sort({ [sortBy]: sortType });
 
-    if (!events) {
-      return errorResponseWithoutData(
-        res,
-        messages.errorGettingUpcomingEventByUser,
-        400
-      );
-    }
-
     return successResponseData(
       res,
       events,
@@ -244,8 +202,6 @@ const getUpcomingEventsByEventManager = async (req, res) => {
       { count: eventCount }
     );
   } catch (error) {
-    console.log(`${messages.errorGettingUpcomingEventByUser} : ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorGettingUpcomingEventByUser} : ${error}`,
@@ -295,10 +251,6 @@ const updateEvent = async (req, res) => {
       { new: true }
     );
 
-    if (!event) {
-      return errorResponseWithoutData(res, messages.errorUpdatingEvent, 400);
-    }
-
     return successResponseData(
       res,
       event,
@@ -306,8 +258,6 @@ const updateEvent = async (req, res) => {
       messages.userUpdatedSuccessfully
     );
   } catch (error) {
-    console.log(`${messages.errorUpdatingEvent}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorUpdatingEvent}: ${error}`,
@@ -334,8 +284,6 @@ const saveEvent = async (req, res) => {
       return successResponseWithoutData(res, messages.eventAlreadySaved, 200);
     }
 
-    console.log("Already Saved : ", eventAlreadySaved);
-
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -344,14 +292,8 @@ const saveEvent = async (req, res) => {
       { new: true }
     );
 
-    if (!user) {
-      return errorResponseWithoutData(res, messages.errorSavingEvent, 400);
-    }
-
     return successResponseWithoutData(res, messages.successSavingEvent, 200);
   } catch (error) {
-    console.log(`${messages.errorSavingEvent}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorSavingEvent}: ${error}`,
@@ -364,13 +306,9 @@ const getSavedEvents = async (req, res) => {
   try {
     let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
 
-    if (page !== 0 && page !== "0") {
-      page -= 1;
-    }
+    page = [0, "0"].indexOf(page) === -1 ? page - 1 : page;
 
-    if (!SORT_BY.includes(sortBy)) {
-      sortBy = SORT_BY[0];
-    }
+    sortBy = SORT_BY.includes(sortBy) ? sortBy : SORT_BY[0];
 
     sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
@@ -385,14 +323,6 @@ const getSavedEvents = async (req, res) => {
       .skip(page * limit)
       .sort({ [sortBy]: sortType });
 
-    if (!savedEvents) {
-      return errorResponseWithoutData(
-        res,
-        messages.errorGettingSavedEvents,
-        400
-      );
-    }
-
     return successResponseData(
       res,
       savedEvents,
@@ -400,8 +330,6 @@ const getSavedEvents = async (req, res) => {
       messages.successfullyFetchedSavedEvents
     );
   } catch (error) {
-    console.log(`${messages.errorGettingSavedEvents} : ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorGettingSavedEvents} : ${error}`,
@@ -414,13 +342,9 @@ const getPastEventsCreatedByEventManager = async (req, res) => {
   try {
     let { page = 0, limit = 10, sortBy = SORT_BY[0], sortType } = req.query;
 
-    if (page !== 0 && page !== "0") {
-      page -= 1;
-    }
+    page = ([0, '0'].indexOf(page) === -1) ? page - 1 : page;
 
-    if (!SORT_BY.includes(sortBy)) {
-      sortBy = SORT_BY[0];
-    }
+    sortBy = SORT_BY.includes(sortBy) ? sortBy : SORT_BY[0];
 
     sortType = sortType === SORT_TYPE[0] ? -1 : 1;
 
@@ -433,7 +357,7 @@ const getPastEventsCreatedByEventManager = async (req, res) => {
       .skip(page * limit)
       .sort({ [sortBy]: sortType });
 
-    if (!eventsCreatedInPast) {
+    if (eventsCreatedInPast.length === 0) {
       return successResponseWithoutData(
         res,
         messages.zeroPastEventByManager,
@@ -448,8 +372,6 @@ const getPastEventsCreatedByEventManager = async (req, res) => {
       messages.pastEventByManagerFetchedSuccess
     );
   } catch (error) {
-    console.log(`${messages.errorGettingPastEvents}: ${error}`);
-
     return errorResponseWithoutData(
       res,
       `${messages.errorGettingPastEvents}: ${error}`,
